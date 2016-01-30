@@ -17,8 +17,9 @@ public class MainActivity extends AppCompatActivity {
 
     private final int UPDATE_TIME = 1000;
     private final int MSG = 1;
-    private int visibleVariableCount = 1;
     private List<MyFragment> fragments = new ArrayList<>();
+    private final int CYCLE_FIRST_COUNT = 0;
+    private int visibleVariableCount = 0;
 
     FragmentManager fragmentManager;
     FragmentTransaction fragmentTransaction;
@@ -63,25 +64,38 @@ public class MainActivity extends AppCompatActivity {
         }
         fragmentTransaction.commit();
         L.d("commit...");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         handler.sendEmptyMessageDelayed(MSG, UPDATE_TIME);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeMessages(MSG);
     }
 
     private void setActiveFragment() {
         fragmentTransaction = fragmentManager.beginTransaction();
-        visibleVariable(visibleVariableCount);
+        visibleVariable();
         fragmentTransaction.commit();
         handler.sendEmptyMessageDelayed(MSG, UPDATE_TIME);
     }
 
-    private void visibleVariable(int count) {
-        for (MyFragment fragment : fragments) {
-            if (fragment.getTag().equals("fragment" + count)) {
-                fragmentTransaction.show(fragment);
-            } else fragmentTransaction.hide(fragment);
-        }
-        if (visibleVariableCount != 4) {
+    private void visibleVariable() {
+
+        if (visibleVariableCount == CYCLE_FIRST_COUNT) {
+            fragmentTransaction.hide(fragments.get(fragments.size() - 1));
+        } else fragmentTransaction.hide(fragments.get(visibleVariableCount - 1));
+
+        fragmentTransaction.show(fragments.get(visibleVariableCount));
+
+        if (visibleVariableCount != fragments.size() - 1) {
             visibleVariableCount++;
-        } else visibleVariableCount = 1;
+        } else visibleVariableCount = CYCLE_FIRST_COUNT;
     }
 
     public String getText(String tag) {
